@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dudu.dao.HandleMapper">
+    <resultMap id="baseResultMap" type="com.dudu.domain.HandleResource">
+        <id column="id" property="id" jdbcType="BIGINT"  />
+        <result column="appeal_date" property="appealDate" jdbcType="VARCHAR"/>
+        <result column="account" property="account" jdbcType="VARCHAR"/>
+        <result column="run_date" property="runDate" jdbcType="VARCHAR"/>
+        <result column="success" property="success" jdbcType="VARCHAR"/>
+        <result column="result" property="result" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <!--<result column="photo" property="photo" jdbcType="VARCHAR"/>-->
+    </resultMap>
+
+    <sql id="baseColumnList" >
+        id, appeal_date, account,run_date,success,result,status
+    </sql>
+
+    <select id="queryHandleResourceList" resultMap="baseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="baseColumnList" />
+        from appeal_handle
+        <where>
+            1 = 1
+            <if test="account!= null and account !=''">
+                AND account like CONCAT(CONCAT('%',#{account,jdbcType=VARCHAR}),'%')
+            </if>
+            <if test="runDate != null and runDate !=''">
+                AND run_date like  CONCAT(CONCAT('%',#{runDate,jdbcType=VARCHAR}),'%')
+            </if>
+
+        </where>
+        ORDER BY id DESC
+    </select>
+
+    <select id="queryHandleResourceById"  resultMap="baseResultMap" parameterType="java.lang.Long">
+        SELECT
+        <include refid="baseColumnList" />
+        FROM appeal_handle
+        WHERE id = #{id}
+    </select>
+
+    <update id="update" parameterType="com.dudu.domain.HandleResource" >
+        UPDATE appeal_handle SET account = #{account},appeal_date = #{appealDate},account = #{account} ,run_date = #{runDate},success = #{success},status =#{status} WHERE id = #{id}
+    </update>
+
+
+</mapper>

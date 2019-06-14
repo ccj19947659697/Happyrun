@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dudu.dao.StudentMapper">
+    <resultMap id="baseResultMap" type="com.dudu.domain.StudentResource">
+        <id column="id" property="id" jdbcType="BIGINT"  />
+        <result column="account" property="account" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="gender" property="gender" jdbcType="VARCHAR"/>
+        <result column="passwd" property="passwd" jdbcType="VARCHAR"/>
+        <result column="tel" property="tel" jdbcType="VARCHAR"/>
+        <result column="mail" property="mail" jdbcType="VARCHAR"/>
+        <!--<result column="photo" property="photo" jdbcType="VARCHAR"/>-->
+    </resultMap>
+
+    <sql id="baseColumnList" >
+        id, account, name,gender,passwd,tel,mail
+    </sql>
+
+    <select id="queryStudentResourceList" resultMap="baseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="baseColumnList" />
+        from student_resource
+        <where>
+            1 = 1
+            <if test="account!= null and account !=''">
+                AND account like CONCAT(CONCAT('%',#{account,jdbcType=VARCHAR}),'%')
+            </if>
+            <if test="name != null and name !=''">
+                AND name like  CONCAT(CONCAT('%',#{name,jdbcType=VARCHAR}),'%')
+            </if>
+
+        </where>
+    </select>
+
+    <select id="queryStudentResourceById"  resultMap="baseResultMap" parameterType="java.lang.Long">
+        SELECT
+        <include refid="baseColumnList" />
+        FROM student_resource
+        WHERE id = #{id}
+    </select>
+
+    <select id="queryStudentResourceByAccount" resultType="java.lang.Integer" parameterType="java.lang.String">
+        SELECT COUNT(*)
+        <!--<include refid="baseColumnList" />-->
+        FROM student_resource
+        WHERE account = #{account}
+    </select>
+
+    <insert id="add" parameterType="com.dudu.domain.StudentResource" >
+        INSERT INTO student_resource (account,name,gender,passwd,tel,mail) VALUES (#{account}, #{name}, #{gender},#{passwd},#{tel},#{mail})
+    </insert>
+
+    <update id="update" parameterType="com.dudu.domain.StudentResource" >
+        UPDATE student_resource SET account = #{account},name = #{name},gender = #{gender} ,passwd = #{passwd},tel = #{tel},mail =#{mail} WHERE id = #{id}
+    </update>
+
+    <delete id="deleteByIds" parameterType="java.lang.String" >
+        DELETE FROM student_resource WHERE id in
+        <foreach item="idItem" collection="array" open="(" separator="," close=")">
+            #{idItem}
+        </foreach>
+    </delete>
+
+
+
+</mapper>

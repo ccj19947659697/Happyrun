@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dudu.dao.ScoreMapper">
+    <resultMap id="baseResultMap" type="com.dudu.domain.ScoreResource">
+        <id column="id" property="id" jdbcType="BIGINT"  />
+        <result column="account" property="account" jdbcType="VARCHAR"/>
+        <result column="date" property="date" jdbcType="VARCHAR"/>
+        <result column="path_id" property="pathId" jdbcType="VARCHAR"/>
+        <result column="single_dis" property="singleDis" jdbcType="VARCHAR"/>
+        <result column="photo" property="photo" jdbcType="VARCHAR"/>
+        <result column="time" property="time" jdbcType="VARCHAR"/>
+        <result column="begin_time" property="beginTime" jdbcType="VARCHAR"/>
+        <result column="speed" property="speed" jdbcType="VARCHAR"/>
+        <result column="steps" property="steps" jdbcType="VARCHAR"/>
+        <result column="single_ok" property="singleOk" jdbcType="VARCHAR"/>
+        <result column="total_dis" property="totalDis" jdbcType="VARCHAR"/>
+        <result column="total_ok" property="totalOk" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="baseColumnList" >
+        id, account, date,path_id,single_dis,photo,time,begin_time,speed,steps,single_ok,total_dis,total_ok
+    </sql>
+
+    <select id="queryScoreResourceList" resultMap="baseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="baseColumnList" />
+        from student_score
+        <where>
+            1 = 1
+            <if test="account!= null and account !=''">
+                AND account like CONCAT(CONCAT('%',#{account,jdbcType=VARCHAR}),'%')
+            </if>
+            <if test="date != null and date !=''">
+                AND date like  CONCAT(CONCAT('%',#{date,jdbcType=VARCHAR}),'%')
+            </if>
+
+        </where>
+        ORDER BY id DESC
+    </select>
+
+    <select id="queryScoreResourceById"  resultMap="baseResultMap" parameterType="java.lang.Long">
+        SELECT
+        <include refid="baseColumnList" />
+        FROM student_score
+        WHERE id = #{id}
+    </select>
+
+    <insert id="add" parameterType="com.dudu.domain.ScoreResource" >
+        INSERT INTO student_score (account, date,path_id,single_dis,photo,time,begin_time,speed,steps,single_ok,total_dis,total_ok) VALUES (#{account}, #{date}, #{pathId},#{singleDis},#{photo},#{time},#{beginTime},#{speed},#{steps},#{singleOk},#{totalDis},#{totalOk})
+    </insert>
+
+    <update id="update" parameterType="com.dudu.domain.ScoreResource" >
+        UPDATE student_score SET account = #{account},date = #{date},path_id = #{pathId} ,single_dis = #{singleDis},photo = #{photo},time =#{time},begin_time =#{beginTime},speed =#{speed},steps =#{steps},single_ok =#{singleOk},total_dis =#{totalDis},total_ok =#{totalOk} WHERE id = #{id}
+    </update>
+
+    <delete id="deleteByIds" parameterType="java.lang.String" >
+        DELETE FROM student_score WHERE id in
+        <foreach item="idItem" collection="array" open="(" separator="," close=")">
+            #{idItem}
+        </foreach>
+    </delete>
+
+</mapper>

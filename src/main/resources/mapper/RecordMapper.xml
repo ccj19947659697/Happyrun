@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dudu.dao.RecordMapper">
+    <resultMap id="baseResultMap" type="com.dudu.domain.RecordResource">
+        <id column="id" property="id" jdbcType="BIGINT"  />
+        <id column="appeal_date" property="appealDate" jdbcType="VARCHAR"  />
+        <id column="account" property="account" jdbcType="VARCHAR"  />
+        <id column="run_date" property="runDate" jdbcType="VARCHAR"  />
+        <id column="path_id" property="pathId" jdbcType="VARCHAR"  />
+        <id column="reason" property="reason" jdbcType="VARCHAR"  />
+        <!--<id column="photo" property="photo" jdbcType="VARCHAR"  />-->
+    </resultMap>
+
+    <sql id="baseColumnList" >
+        id, appeal_date, account,run_date,path_id,reason
+    </sql>
+
+    <select id="queryRecordResourceList" resultMap="baseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="baseColumnList" />
+        from appeal_record
+        <where>
+            1 = 1
+            <if test="account!= null and account !=''">
+                AND account like CONCAT(CONCAT('%',#{account,jdbcType=VARCHAR}),'%')
+                <!--  第一个path_id 是表中的字段  后一个path_id 是params中的参数名，不是对应的实体名-->
+            </if>
+            <!--  test="runDate != null and runDate !=''" 是 params 参数组中的 参数名-->
+            <if test="runDate != null and runDate !=''">
+                AND run_date like  CONCAT(CONCAT('%',#{runDate,jdbcType=VARCHAR}),'%')
+            </if>
+
+        </where>
+        ORDER BY id DESC
+    </select>
+
+</mapper>

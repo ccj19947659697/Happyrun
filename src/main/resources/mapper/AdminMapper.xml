@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dudu.dao.AdminMapper">
+    <resultMap id="baseResultMap" type="com.dudu.domain.AdminResource">
+        <id column="id" property="id" jdbcType="BIGINT"  />
+        <result column="account" property="account" jdbcType="VARCHAR"/>
+        <result column="passwd" property="passwd" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="gender" property="gender" jdbcType="VARCHAR"/>
+        <result column="office_tel" property="officeTel" jdbcType="VARCHAR"/>
+        <result column="mail" property="mail" jdbcType="VARCHAR"/>
+        <result column="photo" property="photo" jdbcType="VARCHAR"/>
+
+        <!-- column="passwd"指的是数据库中的字段   property="passwd"指的是实体中的属性  将二者关联-->
+    </resultMap>
+
+    <sql id="baseColumnList" >
+        id, account, passwd,name,gender,office_tel,mail,photo
+    </sql>
+
+    <select id="queryAdminResourceByAccount"  resultMap="baseResultMap" parameterType="java.lang.String">
+        SELECT
+        <include refid="baseColumnList" />
+        FROM admin_resource
+        WHERE account = #{account}
+    </select>
+
+    <update id = "update" parameterType="com.dudu.domain.AdminResource">
+        UPDATE admin_resource SET account = #{account},passwd = #{passwd} ,name = #{name},gender = #{gender},office_tel=#{officeTel},mail = #{mail},photo = #{photo} WHERE id = #{id}
+        <!-- 之前忘记将 #{id} 前面加# 导致错误！！！ passwd = #{passwd} 第一个是 数据表字段 后一个是 对应的实体属性 -->
+    </update>
+
+</mapper>

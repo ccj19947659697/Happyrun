@@ -1,0 +1,634 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="../static/assets/css/bootstrap.min.css" th:href="@{/assets/css/bootstrap.min.css}" />
+    <link rel="stylesheet" href="../static/assets/css/font-awesome.min.css" th:href="@{/assets/css/font-awesome.min.css}"/>
+    <link rel="stylesheet" href="../static/assets/css/jquery-ui-1.10.3.full.min.css" th:href="@{/assets/css/jquery-ui-1.10.3.full.min.css}"/>
+    <link rel="stylesheet" href="../static/assets/css/datepicker.css" th:href="@{/assets/css/datepicker.css}"/>
+    <link rel="stylesheet" href="../static/assets/css/googleFamily.css" th:href="@{/assets/css/googleFamily.css}"/>
+    <link rel="stylesheet" href="../static/assets/css/ui.jqgrid.css" th:href="@{/assets/css/ui.jqgrid.css}"/>
+
+    <link rel="stylesheet" href="../static/assets/css/chosen.css" th:href="@{/assets/css/chosen.css}"/>
+    <link rel="stylesheet" href="../static/assets/css/custom.css" th:href="@{/assets/css/custom.css}"/>
+    <link rel="stylesheet" href="../static/assets/css/ace.min.css" th:href="@{/assets/css/ace.min.css}"/>
+    <link rel="stylesheet" href="../static/assets/css/ace-rtl.min.css" th:href="@{/assets/css/ace-rtl.min.css}"/>
+    <link rel="stylesheet" href="../static/assets/css/ace-skins.min.css" th:href="@{/assets/css/ace-skins.min.css}"/>
+
+    <!--[if !IE]> -->
+    <script src="../static/assets/js/jquery-2.0.3.min.js" th:src="@{/assets/js/jquery-2.0.3.min.js}"></script>
+    <!-- <![endif]-->
+    <!--[if IE]>
+    <script src="../static/assets/js/jquery-1.10.2.min.js" th:src="@{/assets/js/jquery-1.10.2.min.js}"></script>
+    <![endif]-->
+
+    <title>校园阳光长跑管理系统</title>
+    <style>
+        .logo{
+            width: 30px;
+            height:30px;
+            padding: 0px;
+            margin-top: -4px;
+        }
+    </style>
+    <script type="text/javascript">
+
+        var task = null;
+
+        $(function() {
+
+            //初始化查询菜单
+//        initData();
+            $("#menus").on("click", ".changeUrl", function() {
+                var id = $(this).attr("id");
+                var url = $(this).attr("value");
+
+                /*<![CDATA[*/
+                if(id && url){
+                    addTabs({
+                        id:id,
+                        title:$(this).text(),
+                        url:url,
+                        close:true
+                    });
+                }
+                /*]]>*/
+
+
+            });
+            $(".nav-tabs").on("click", ".close-tab", function() {
+                id = $(this).prev("a").attr("aria-controls");
+                closeTab(id);
+            });
+
+            $("#mainIframe").load(function(){
+                var mainheight =$(this).contents().find("body").height();
+                /*<![CDATA[*/
+                if(mainheight<400){
+                    mainheight = 400;
+                }
+                /*]]>*/
+                $(this).height(mainheight);
+            });
+
+            //退出操作
+            $("#outLogin").click(function(){
+
+                if(window.confirm("确认退出？")){
+
+                    $.ajax({
+                        url: "/logout",
+                        cache: false,
+                        dataType: 'json',
+                        type: 'POST',
+                        success: function (json) {
+
+                            if(json.result == "0"){
+
+                                //alert("温馨提示","退出成功，请及时关闭相关页面！");
+                                window.location.href = "/toLogin";
+
+                            }else{
+                                alert("退出失败，请重试！");
+                            }
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+
+                            //alert("退出失败，请重试！");
+                            alert("用户失效，请重新登录！");
+                            window.location.href = "/toLogin";
+                        }
+                    });
+
+                }
+
+
+            });
+
+
+            //信息修改由此处开始添加
+            //编辑对话框取消点击事件
+            $('#cancelSave').click(function(){
+                $("#addModal").modal('hide');
+            });
+
+            //保存教程
+            $('#saveLearnBtn').click(function(){
+                saveLearn();
+            });
+
+            //修改教程，弹出修改窗
+            $("#modifyAdmin").click(function (){
+                //window.confirm("确认修改？");
+                $.ajax({
+                    type: 'POST',
+                    url: "/getAdmin",
+                    //cache: false,
+                    data:{
+                        "adminName" : $("#check").html()
+                    },
+                    dataType: 'json',
+
+                    success: function (data) {
+                        try {
+                            task = "updateAdmin";
+                            initData();
+                            $("#id").val(data.result1);
+                            $("#account").val(data.result2);
+                            $("#name").val(data.result3);
+                            $("#password").val(data.result4);
+                            $("#gender").val(data.result5);
+                            $("#tel").val(data.result6);
+                            $("#mail").val(data.result7);
+                            //
+                            $('#myModalLabel').text('编辑个人信息');
+                            $("#addModal").modal({
+                                keyboard : false,
+                                show : true,
+                                backdrop : "static"
+                            });
+                        } catch (e) {
+                            alert("操作不成功，请重试！");
+                            //window.location.href = "/";
+                        }
+                    },
+                    error: function (XMLHttpRequest, textStatus, errorThrown) {
+                        //alert("管理员信息获取错误！");
+                        alert("用户失效，请重新登录！");
+                        window.location.href = "/toLogin";
+
+                    }
+                });
+
+
+
+//            var rows=$(grid_selector).getGridParam('selarrrow');
+//            if(rows==0){
+//                // $.messager.alert("温馨提示","请选择一行记录！");
+//                layer.msg('请选择一行记录！', {icon: 7,time: 2000}); //2秒关闭（如果不配置，默认是3秒）
+//                return;
+//            }else if(rows.length>1){
+//                // $.messager.alert("温馨提示","不能同时修改多条记录！");
+//                layer.msg('不能同时修改多条记录！', {icon: 7,time: 2000}); //2秒关闭（如果不配置，默认是3秒）
+//                return;
+//            }else{
+//                var data = $(grid_selector).jqGrid('getRowData', rows[0]);
+//                task = "update";
+//                initData();
+//                $("#id").val(data.id);
+//                $("#account").val(data.account);//
+//                $("#name").val(data.name);
+//                $("#gender").val(data.gender);
+//                $('#myModalLabel').text('修改学生信息');
+//                $("#addModal").modal({
+//                    keyboard : false,
+//                    show : true,
+//                    backdrop : "static"
+//                });
+//            }
+
+
+            });
+
+
+        });
+
+        //打开菜单
+        function changeUrl(url) {
+            clearFlash();
+            $("#mainFrame").attr("src","/" + url);
+        }
+        //清除iframe
+        function clearFlash() {
+            try {
+                //在iframe销毁前清理掉iframe中的内容（特别是flash）
+                $("#mainFrame").contents().find("body").empty();
+            } catch (e) {
+            }
+        }
+
+        //接收login.html界面传递过来的 参数值
+        function getUser(){
+            var getUrl = location.search;//获取当前页面URL中 从 ？ 开始的部分 即页面参数部分
+            var userName = getUrl.substring(10);//字符串提取得到用户名
+            var getName = document.getElementById("check");
+            getName.innerHTML = userName;//通过ID 和.innerHTML 属性将用户名赋值给相应的标签
+        }
+
+        //点击 ”校园阳光长跑平台管理“ 界面刷新  （感觉没有实质性的必要）
+//        function refresh() {
+//            var getUrl = location.href;
+//            var getName = document.getElementById("fresh").valueOf("href="+getUrl);
+//        }
+
+
+
+
+        //初始化数据
+        function initData(){
+            $('#account').val("");
+            $('#name').val("");
+            $('#password').val("");
+            $('#gender').val("");
+            $('#tel').val("");
+            $('#mail').val("");
+        }
+
+
+        /**
+         * 保存教程（新增或修改）
+         */
+        function saveLearn(){
+            var id = $('#id').val();
+            var account = $('#account').val();
+            var name = $('#name').val();
+            var password = $('#password').val();
+            var gender = $('#gender').val();
+            var tel = $('#tel').val();
+            var mail = $('#mail').val();
+            $.ajax({
+                url: task,//-----
+                cache: false,
+                dataType:'json',
+                data : {
+                    "id":id,
+                    "account":account,///----
+                    "name":name,
+                    "password": password,
+                    "gender":gender,
+                    "tel":tel,
+                    "mail":mail
+                },
+                type : 'post',
+                beforeSend: function () {
+                    // 禁用按钮防止重复提交
+                    $('#saveLearnBtn').attr({ disabled: "disabled"});
+                },
+                success: function(result){
+                    if(result.flag == true){
+                        $.messager.alert('温馨提示',result.message);
+                        $("#addModal").modal('hide');
+                        //refreshData();
+                    }else{
+                        $.messager.alert('温馨提示',result.message);
+                    }
+                },
+                complete: function () {
+                    $('#saveLearnBtn').removeAttr("disabled");
+                },
+                error: function (data) {
+                    console.info("error: " + data.responseText);
+                }
+            });
+        }
+
+
+    </script>
+</head>
+<body onload="getUser()">
+<div class="navbar navbar-default" id="navbar">
+    <div class="navbar-container" id="navbar-container">
+        <div class="navbar-header pull-left">
+            <!--<a th:href="@{/index}"  class="navbar-brand" style="height: 45px;" >-->
+            <!--<a class="navbar-brand" style="height: 45px;" >-->
+            <a id = "fresh" class="navbar-brand" style="height: 45px;"  >
+                <small>
+                    <img class="logo"  th:src="@{/assets/images/logo.png}" /> 校园阳光长跑平台管理
+                </small>
+            </a>
+        </div>
+
+        <div class="navbar-header pull-right" role="navigation">
+            <ul class="nav ace-nav">
+
+                <!-- 保留信息修改的部分 -->
+
+                <li class="light-blue">
+                    <a data-toggle="dropdown" href="#" class="dropdown-toggle">
+                        <img class="nav-user-photo" th:src="@{/assets/images/dudu.jpg}" />
+                        <span class="user-info">
+                            <small>欢迎登入,</small>
+                            <span id = "check"></span>
+						</span>
+
+                        <i class="icon-caret-down"></i>
+                    </a>
+                    <!--<input type = "text" name = "log" value="123">-->
+                    <ul class="user-menu pull-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
+                        <li><a href="#"> <i class="icon-cog"></i> 设置</a></li>
+                        <li><a href="#" id = "modifyAdmin"> <i class="icon-user"></i> 编辑个人资料</a></li>
+                        <li class="divider"></li>
+                        <li><a id="outLogin" href="#"> <i class="icon-off"></i>退出</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <!-- /.ace-nav -->
+        </div>
+        <!-- /.navbar-header -->
+    </div>
+    <!-- /.container -->
+</div>
+
+<div class="main-container" id="main-container">
+
+    <div class="main-container-inner">
+        <a class="menu-toggler" id="menu-toggler" href="#"> <span class="menu-text"></span></a>
+        <div class="sidebar" id="sidebar">
+            <ul id="menus" class="nav nav-list">
+                <li>
+                    <a href="#" class="dropdown-toggle">
+                        <i class="icon-desktop"></i>
+                        <span class="menu-text">基本信息管理</span>
+                        <b class="arrow icon-angle-down"></b>
+                    </a>
+                    <ul class="submenu">
+                        <li>
+                            <!-- 修改id为student可以 也可以是learn 或者其他值，这里只是做一个标签id 不影响访问的URL地址-->
+                            <a id="student" value="/student" class="changeUrl">
+                                <i class="icon-double-angle-right"></i>
+                                学生基本信息
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="path" value="/path" class="changeUrl">
+                                <i class="icon-double-angle-right"></i>
+                                路径基本信息
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="monitor" value="/monitor" class="changeUrl">
+                                <i class="icon-double-angle-right"></i>
+                                监测点基本信息
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#" class="dropdown-toggle">
+                        <i class="icon-cogs"></i>
+                        <span class="menu-text">学生成绩管理</span>
+
+                        <b class="arrow icon-angle-down"></b>
+                    </a>
+
+                    <ul class="submenu">
+                        <li>
+                            <a id="score" value="/score" class="changeUrl">
+                                <i class="icon-double-angle-right"></i>
+                                学生成绩管理
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="record" value="/record" class="changeUrl">
+                                <i class="icon-double-angle-right"></i>
+                                成绩申诉登记
+                            </a>
+                        </li>
+
+                        <li>
+                            <a id="handle" value="/handle" class="changeUrl">
+                                <i class="icon-double-angle-right"></i>
+                                成绩申诉处理
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+               <!--
+                <li>
+                    <a href="#" class="dropdown-toggle">
+                        <i class="icon-list"></i>
+                        <span class="menu-text">客户-套餐管理</span>
+                        <b class="arrow icon-angle-down"></b>
+                    </a>
+                    <ul class="submenu">
+                        <li>
+                            <a href="elements.html" class="changeUrl">
+                                <i class="icon-double-angle-right"></i>
+                                客户信息管理
+                            </a>
+                        </li>
+                        <li>
+                            <a href="elements.html" class="changeUrl">
+                                <i class="icon-double-angle-right"></i>
+                                套餐模板管理
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#" class="dropdown-toggle">
+                        <i class="icon-edit"></i>
+                        <span class="menu-text">岗位体系管理</span>
+                    </a>
+                </li>
+
+
+
+                <li>
+                    <a href="#" class="dropdown-toggle">
+                        <i class="icon-cloud"></i>
+                        <span class="menu-text">资源管理</span>
+
+                        <b class="arrow icon-angle-down"></b>
+                    </a>
+
+                    <ul class="submenu">
+                        <li>
+                            <a href="tables.html">
+                                <i class="icon-double-angle-right"></i>
+                                课程资源管理
+                            </a>
+                        </li>
+                        <li>
+                            <a href="tables.html">
+                                <i class="icon-double-angle-right"></i>
+                                课件资源管理
+                            </a>
+                        </li>
+                        <li>
+                            <a href="tables.html">
+                                <i class="icon-double-angle-right"></i>
+                                考试资源管理
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#" class="dropdown-toggle">
+                        <i class="icon-globe"></i>
+                        <span class="menu-text"> 系统信息管理 </span>
+
+                        <b class="arrow icon-angle-down"></b>
+                    </a>
+
+                    <ul class="submenu">
+                        <li>
+                            <a href="tables.html">
+                                <i class="icon-double-angle-right"></i>
+                                新客户审核
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                -->
+            </ul>
+            <div class="sidebar-collapse" id="sidebar-collapse">
+                <i class="icon-double-angle-left"
+                   data-icon1="icon-double-angle-left"
+                   data-icon2="icon-double-angle-right"></i>
+            </div>
+        </div>
+        <div class="main-content">
+            <ul class="nav nav-tabs" role="tablist" style="height:34px">
+                <li role="presentation" class="active" style="margin-right: 4px;">
+                    <a href="#home" aria-controls="home" role="tab" data-toggle="tab"><i class="icon-home home-icon"></i>首页</a>
+                </li>
+            </ul>
+            <div class="tab-content page-content" style="margin-right: 5px;">
+                <div role="tabpanel" class="tab-pane active" id="home">
+                    <!-- 在这里将main.html界面嵌套到index.html界面中  在访问index界面时，main界面也会显示 -->
+                    <iframe id="mainIframe" th:src="@{/main}" scrolling="no" frameborder="0" width="100%" style="border: 0;height: 200px;"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <!-- /.main-content -->
+        <div class="ace-settings-container" id="ace-settings-container">
+            <div class="btn btn-app btn-xs btn-warning ace-settings-btn" id="ace-settings-btn">
+                <i class="icon-cog bigger-150"></i>
+            </div>
+            <div class="ace-settings-box" id="ace-settings-box">
+                <div>
+                    <div class="pull-left">
+                        <select id="skin-colorpicker" class="hide">
+                            <option data-skin="default" value="#438EB9">#438EB9</option>
+                            <option data-skin="skin-1" value="#222A2D">#222A2D</option>
+                            <option data-skin="skin-2" value="#C6487E">#C6487E</option>
+                            <option data-skin="skin-3" value="#D0D0D0">#D0D0D0</option>
+                        </select>
+                    </div>
+                    <span>&nbsp; 选择皮肤</span>
+                </div>
+                <div>
+                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-navbar" /> <label class="lbl" for="ace-settings-navbar"> 固定导航条</label>
+                </div>
+                <div>
+                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-sidebar"/> <label class="lbl" for="ace-settings-sidebar"> 固定滑动条</label>
+                </div>
+                <div>
+                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-breadcrumbs" /> <label class="lbl" for="ace-settings-breadcrumbs">固定面包屑</label>
+                </div>
+                <div>
+                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-rtl" /> <label class="lbl" for="ace-settings-rtl">切换到左边</label>
+                </div>
+                <div>
+                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-add-container" /> <label class="lbl" for="ace-settings-add-container">切换窄屏<b></b></label>
+                </div>
+            </div>
+        </div>
+        <!-- /#ace-settings-container -->
+    </div>
+    <!-- /.main-container-inner -->
+    <!--
+    <a href="#" id="btn-scroll-up" class="btn-scroll-up btn btn-sm btn-inverse">
+        <i class="icon-double-angle-up icon-only bigger-110"></i>
+    </a>
+     -->
+</div>
+<!-- /.main-container -->
+
+<!--新增窗口   添加 修改的弹窗编辑框-->
+<div id="addModal" class="bootbox modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog ">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">修改个人资料</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" role="form" onsubmit="return false;">
+
+                    <div class="form-group" style="display: none;">
+                        <label class="col-sm-2 control-label">id</label>
+                        <div class="col-sm-8">
+                            <input id="id" type="text" class="form-control" placeholder="" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">帐号</label>
+                        <div class="col-sm-8">
+                            <input id="account" readonly="readonly" type="text" class="form-control" placeholder="" />
+                        </div>
+                    </div>
+                    <div class="form-group" >
+                        <label class="col-sm-2 control-label">姓名</label>
+                        <div class="col-sm-8">
+                            <input id="name" type="text" class="form-control" placeholder="输入姓名" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">性别</label>
+                        <div class="col-sm-8">
+                            <input id="gender" type="text" class="form-control" placeholder="输入性别" />
+                        </div>
+                    </div>
+                    <div class="form-group" >
+                        <label class="col-sm-2 control-label">密码</label>
+                        <div class="col-sm-8">
+                            <input id="password" type="text" class="form-control" placeholder="输入密码" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">办公电话</label>
+                        <div class="col-sm-8">
+                            <input id="tel" type="text" class="form-control" placeholder="输入办公电话" />
+                        </div>
+                    </div>
+                    <div class="form-group" >
+                        <label class="col-sm-2 control-label">邮箱</label>
+                        <div class="col-sm-8">
+                            <input id="mail" type="text" class="form-control" placeholder="输入邮箱" />
+                        </div>
+                    </div>
+                    <!--<div class="form-group">-->
+                        <!--<label class="col-sm-2 control-label"></label>-->
+                        <!--<div class="col-sm-8">-->
+                            <!--<input id="photo" type="text" class="form-control" placeholder="输入性别" />-->
+                        <!--</div>-->
+                    <!--</div>-->
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button data-bb-handler="confirm" type="button" id="saveLearnBtn" class="btn btn-success radius">
+                    <span><i class="icon-ok"></i></span> &nbsp;保&nbsp;&nbsp;存
+                </button>
+                <button data-bb-handler="cancel" type="button" id="cancelSave" class="btn btn-danger radius">取消</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="../static/assets/js/ace-extra.min.js" th:src="@{/assets/js/ace-extra.min.js}"></script>
+<!--[if lt IE 9]>
+
+<script src="../static/assets/js/html5shiv.js" th:src="@{/assets/js/html5shiv.js}"></script>
+<script src="../static/assets/js/respond.min.js" th:src="@{/assets/js/respond.min.js}"></script>
+<![endif]-->
+<script src="../static/assets/js/bootstrap.min.js" th:src="@{/assets/js/bootstrap.min.js}"></script>
+<script src="../static/assets/js/jquery-ui-1.10.3.custom.min.js" th:src="@{/assets/js/jquery-ui-1.10.3.custom.min.js}"></script>
+<script src="../static/assets/js/jquery.slimscroll.min.js" th:src="@{/assets/js/jquery.slimscroll.min.js}"></script>
+<script src="../static/assets/js/chosen.jquery.min.js" th:src="@{/assets/js/chosen.jquery.min.js}"></script>
+<script src="../static/assets/js/ace-elements.min.js" th:src="@{/assets/js/ace-elements.min.js}"></script>
+<script src="../static/assets/js/ace.min.js" th:src="@{/assets/js/ace.min.js}"></script>
+<script src="../static/assets/js/md5.js" th:src="@{/assets/js/md5.js}"></script>
+<script src="../static/assets/js/custom.js" th:src="@{/assets/js/custom.js}"></script>
+<script src="../static/assets/js/jquery.messager.js" th:src="@{/assets/js/jquery.messager.js}"></script>
+<!--<script th:src="@{/js/admin-resource.js}"></script>-->
+</body>
+</html>
